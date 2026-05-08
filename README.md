@@ -1,26 +1,6 @@
 # PayStream
 
-Global payroll on Stellar. Pay distributed teams in stablecoins, settle in 47 local currencies, close the books on time.
-
-## Capabilities
-
-| Capability | Status |
-|---|---|
-| Batched payouts up to 1,000 recipients per run | Live |
-| USDC, EURC, and 12 anchored stablecoins | Live |
-| Local-currency delivery in 47 countries via SEP-31 | Live |
-| Recurring schedules: weekly, bi-weekly, monthly, custom CRON | Live |
-| Multi-sig funding wallet (2-of-3, 3-of-5 configurable up to 20-of-20) | Live |
-| 1099, W-2, W-8BEN tax form generation | Beta |
-| SAML SSO and SCIM provisioning | Beta |
-| Webhook events (18 event types) | Live |
-| REST API with idempotency keys | Live |
-| Audit log streaming to Splunk, Datadog, S3 | Live |
-| SOC 2 Type II | In progress (target Q3 2026) |
-
-## Who PayStream is for
-
-PayStream is built for finance and people-ops teams running distributed workforces of 10 to 10,000 people. It replaces:
+Global payroll on Stellar. Pay distributed teams in stablecoins, settle in 47 local currencies, close the books on time. PayStream is built for finance and people-ops teams running distributed workforces of 10 to 10,000 people. It replaces:
 
 - **Deel, Remote, Papaya Global** for contractor and EOR payouts where local-currency delivery is the bottleneck
 - **Wise Business, Revolut Business** for batched cross-border salary runs
