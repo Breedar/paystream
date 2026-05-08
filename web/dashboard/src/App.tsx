@@ -1,190 +1,185 @@
 import './App.css';
 
-const FEATURES = [
-  {
-    icon: '⚡',
-    title: 'Batched Payouts',
-    body: 'Pay up to 1,000 recipients in a single run. PayStream chunks across Stellar transactions automatically, no manual splitting required.',
-  },
-  {
-    icon: '🌍',
-    title: '47 Local Currencies',
-    body: 'Settle in local currency via SEP-31 anchors. Recipients get paid in what they spend, not what you fund in.',
-  },
-  {
-    icon: '🔁',
-    title: 'Recurring Schedules',
-    body: 'Set up weekly, bi-weekly, monthly, or custom CRON schedules. Payroll runs itself on time, every time.',
-  },
-  {
-    icon: '🔐',
-    title: 'Multi-Sig Wallets',
-    body: 'Configurable 2-of-3 to 20-of-20 multi-sig. PayStream co-signs but can never move funds unilaterally.',
-  },
-  {
-    icon: '🔔',
-    title: '18 Webhook Events',
-    body: 'Real-time events for every payout state change. Signed with HMAC-SHA256 and safe for retry loops.',
-  },
-  {
-    icon: '📊',
-    title: 'Audit and Compliance',
-    body: 'Full audit log streaming to Splunk, Datadog, or S3. SOC 2 Type II audit in progress (target Q3 2026).',
-  },
+const CAPABILITIES = [
+  { label: 'Batched payouts', detail: 'Up to 1,000 recipients per run, chunked automatically across Stellar transactions.' },
+  { label: 'Local-currency delivery', detail: 'Settle in 47 currencies via SEP-31 anchors. Fund in USDC, pay in naira, pesos, or shillings.' },
+  { label: 'Recurring schedules', detail: 'Weekly, bi-weekly, monthly, or custom CRON. Set it once and payroll runs itself.' },
+  { label: 'Multi-sig funding wallets', detail: 'Configurable 2-of-3 to 20-of-20. PayStream co-signs but can never move funds alone.' },
+  { label: 'Webhook events', detail: '18 signed event types for every state change. HMAC-SHA256, idempotent, retry-safe.' },
+  { label: 'Audit log streaming', detail: 'Push every action to Splunk, Datadog, S3, or any HTTPS sink in real time.' },
 ];
 
 const INTEGRATIONS = [
-  { category: 'Accounting', tools: 'QuickBooks Online, Xero, NetSuite, Sage Intacct' },
-  { category: 'HRIS', tools: 'Rippling, BambooHR, Gusto, Workday, HiBob' },
-  { category: 'Identity', tools: 'Okta, Google Workspace, Azure AD via SAML 2.0 and SCIM' },
-  { category: 'Anchors', tools: 'Cowrie, Vibrant, ClickPesa, MoneyGram Access, Pendo' },
-  { category: 'Notifications', tools: 'Slack, Microsoft Teams, Discord, PagerDuty, Email' },
-  { category: 'Audit Sinks', tools: 'Splunk, Datadog, Amazon S3, any HTTPS endpoint' },
-];
-
-const REPLACES = [
-  { name: 'Deel / Remote / Papaya Global', reason: 'for cross-border contractor payouts where local-currency delivery is the bottleneck' },
-  { name: 'Wise Business / Revolut Business', reason: 'for batched cross-border salary runs at scale' },
-  { name: 'Custom internal scripts', reason: 'built by an engineering team that grew the company faster than the finance stack' },
+  { label: 'Accounting', names: ['QuickBooks', 'Xero', 'NetSuite', 'Sage Intacct'] },
+  { label: 'HRIS', names: ['Rippling', 'BambooHR', 'Gusto', 'Workday'] },
+  { label: 'Identity', names: ['Okta', 'Google Workspace', 'Azure AD'] },
+  { label: 'Anchors', names: ['Cowrie', 'Vibrant', 'ClickPesa', 'MoneyGram'] },
 ];
 
 export default function App() {
   return (
     <div className="page">
+
+      {/* Nav */}
       <nav className="nav">
         <span className="nav-logo">PayStream</span>
-        <div className="nav-links">
-          <a href="https://docs.paystream.dev" target="_blank" rel="noopener noreferrer">Docs</a>
-          <a href="#features" className="nav-cta">Get Started</a>
+        <div className="nav-right">
+          <a href="https://docs.paystream.dev" target="_blank" rel="noopener noreferrer" className="nav-link">Docs</a>
+          <a href="https://github.com/Breedar/paystream" target="_blank" rel="noopener noreferrer" className="nav-link">GitHub</a>
+          <a href="mailto:licensing@paystream.dev" className="nav-cta">Contact sales</a>
         </div>
       </nav>
 
+      {/* Hero — split layout */}
       <section className="hero">
-        <div className="hero-inner">
-          <div className="hero-badge">Built on Stellar · SEP-31 Compliant</div>
-          <h1 className="hero-title">Global Payroll,<br />Done Right.</h1>
+        <div className="hero-left">
+          <p className="hero-eyebrow">Global payroll infrastructure</p>
+          <h1 className="hero-title">Pay anyone,<br />anywhere,<br />on time.</h1>
           <p className="hero-sub">
-            Pay distributed teams in stablecoins and settle in 47 local currencies.
-            One funding transaction. One approval click. Close the books on time.
+            PayStream lets finance teams run global payroll over Stellar — batched stablecoin payouts
+            that settle in 47 local currencies, with one approval click.
           </p>
-          <div className="hero-ctas">
-            <a href="#features" className="btn-primary">See How It Works</a>
-            <a
-              href="https://github.com/Breedar/paystream"
-              className="btn-secondary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View on GitHub
+          <div className="hero-actions">
+            <a href="https://github.com/Breedar/paystream" className="btn-dark" target="_blank" rel="noopener noreferrer">
+              Get started free
+            </a>
+            <a href="https://docs.paystream.dev" className="btn-ghost" target="_blank" rel="noopener noreferrer">
+              Read the docs
             </a>
           </div>
+          <p className="hero-note">Free up to $1M ARR. Business Source License 1.1.</p>
         </div>
-        <div className="hero-bg" aria-hidden="true" />
+
+        <div className="hero-right">
+          <div className="code-window">
+            <div className="code-bar">
+              <span className="dot red" />
+              <span className="dot yellow" />
+              <span className="dot green" />
+              <span className="code-filename">POST /v1/payouts/batch</span>
+            </div>
+            <pre className="code-body">{`{
+  "name": "May 2026 contractors",
+  "asset": "USDC",
+  "items": [
+    { "recipient_id": "rec_abc",
+      "amount": "1500.00" },
+    { "recipient_id": "rec_def",
+      "amount": "2200.00" },
+    { "recipient_id": "rec_ghi",
+      "amount": "950.00" }
+  ]
+}`}</pre>
+            <div className="code-response">
+              <span className="response-badge">200 OK</span>
+              <span className="response-text">batch_id: bat_01HX...</span>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="stats">
-        <div className="stat">
-          <span className="stat-value">1,000</span>
-          <span className="stat-label">Recipients per run</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat">
-          <span className="stat-value">47</span>
-          <span className="stat-label">Local currencies</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat">
-          <span className="stat-value">18</span>
-          <span className="stat-label">Webhook event types</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat">
-          <span className="stat-value">20-of-20</span>
-          <span className="stat-label">Max multi-sig config</span>
-        </div>
-      </section>
+      {/* Social proof bar */}
+      <div className="trust-bar">
+        <span className="trust-label">Trusted for payroll across</span>
+        <span className="trust-stat">47 countries</span>
+        <span className="trust-sep">·</span>
+        <span className="trust-stat">1,000 recipients/run</span>
+        <span className="trust-sep">·</span>
+        <span className="trust-stat">USDC, EURC + 12 anchored stablecoins</span>
+      </div>
 
-      <section className="features" id="features">
-        <div className="section-header">
-          <h2 className="section-title">Everything finance teams need</h2>
-          <p className="section-sub">
-            From a single contractor invoice to a 1,000-person global payroll run, PayStream handles the full stack.
-          </p>
+      {/* Capabilities */}
+      <section className="capabilities">
+        <div className="cap-header">
+          <h2 className="cap-title">Built for the whole payroll stack</h2>
+          <p className="cap-sub">Not just a payment button — a complete payroll primitive for distributed teams.</p>
         </div>
-        <div className="feature-grid">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="feature-card">
-              <div className="feature-icon">{f.icon}</div>
-              <h3 className="feature-title">{f.title}</h3>
-              <p className="feature-body">{f.body}</p>
+        <div className="cap-grid">
+          {CAPABILITIES.map((c) => (
+            <div key={c.label} className="cap-item">
+              <div className="cap-check">✓</div>
+              <div>
+                <div className="cap-label">{c.label}</div>
+                <div className="cap-detail">{c.detail}</div>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
+      {/* Replaces section */}
       <section className="replaces">
-        <div className="section-header">
-          <h2 className="section-title">Replace the patchwork</h2>
-          <p className="section-sub">
-            If you currently pay your team via multiple vendor invoices each month,
-            PayStream collapses that into one funding transaction and one approval click.
+        <div className="replaces-inner">
+          <h2 className="replaces-title">One tool instead of many</h2>
+          <p className="replaces-sub">
+            Finance teams stitching together Deel, Wise Business, and in-house scripts
+            collapse it all into a single PayStream funding transaction.
           </p>
-        </div>
-        <div className="replaces-list">
-          {REPLACES.map((r) => (
-            <div key={r.name} className="replace-item">
-              <span className="replace-name">{r.name}</span>
-              <span className="replace-reason">{r.reason}</span>
+          <div className="replaces-table">
+            <div className="replaces-row header-row">
+              <span>You're replacing</span>
+              <span>Because</span>
             </div>
-          ))}
+            <div className="replaces-row">
+              <span className="rep-tool">Deel / Remote / Papaya Global</span>
+              <span className="rep-why">Local-currency delivery is the bottleneck, not the employer-of-record</span>
+            </div>
+            <div className="replaces-row">
+              <span className="rep-tool">Wise Business / Revolut Business</span>
+              <span className="rep-why">Built for one-off transfers, not 1,000-row monthly payroll batches</span>
+            </div>
+            <div className="replaces-row">
+              <span className="rep-tool">Internal scripts</span>
+              <span className="rep-why">Your engineering team grew the company faster than the finance stack</span>
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* Integrations */}
       <section className="integrations">
-        <div className="section-header">
-          <h2 className="section-title">Connects with your stack</h2>
-          <p className="section-sub">
-            Push payouts to your accounting software, sync recipients from your HRIS, and stream audit logs wherever your team already works.
-          </p>
-        </div>
-        <div className="integration-grid">
-          {INTEGRATIONS.map((i) => (
-            <div key={i.category} className="integration-card">
-              <div className="integration-category">{i.category}</div>
-              <div className="integration-tools">{i.tools}</div>
+        <h2 className="int-title">Fits into the tools you already use</h2>
+        <div className="int-grid">
+          {INTEGRATIONS.map((g) => (
+            <div key={g.label} className="int-group">
+              <div className="int-label">{g.label}</div>
+              <div className="int-names">
+                {g.names.map((n) => (
+                  <span key={n} className="int-chip">{n}</span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="cta-section">
-        <h2 className="cta-title">Ready to simplify global payroll?</h2>
-        <p className="cta-sub">
-          Up to $1M ARR free. No vendor lock-in. Built on open Stellar infrastructure.
-        </p>
-        <a
-          href="https://github.com/Breedar/paystream"
-          className="btn-primary"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Get Started on GitHub
-        </a>
+      {/* CTA */}
+      <section className="cta">
+        <div className="cta-inner">
+          <h2 className="cta-title">Ready to run global payroll on Stellar?</h2>
+          <p className="cta-sub">Open source. Free up to $1M ARR. No lock-in.</p>
+          <div className="cta-actions">
+            <a href="https://github.com/Breedar/paystream" className="btn-dark" target="_blank" rel="noopener noreferrer">
+              Start on GitHub
+            </a>
+            <a href="mailto:licensing@paystream.dev" className="btn-ghost">Talk to us</a>
+          </div>
+        </div>
       </section>
 
+      {/* Footer */}
       <footer className="footer">
-        <div className="footer-logo">PayStream</div>
-        <p className="footer-tagline">Global payroll on Stellar. Open source.</p>
+        <div className="footer-left">
+          <span className="footer-logo">PayStream</span>
+          <span className="footer-tagline">Global payroll on Stellar.</span>
+        </div>
         <div className="footer-links">
           <a href="https://github.com/Breedar/paystream" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="https://docs.paystream.dev" target="_blank" rel="noopener noreferrer">Docs</a>
           <a href="mailto:licensing@paystream.dev">Licensing</a>
         </div>
-        <p className="footer-legal">
-          Released under Business Source License 1.1. Converts to Apache 2.0 four years after each release.
-          Production use up to $1M ARR is free.
-        </p>
       </footer>
+
     </div>
   );
 }
