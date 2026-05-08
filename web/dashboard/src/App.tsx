@@ -30,13 +30,13 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Hero — split layout */}
+      {/* Hero - split layout */}
       <section className="hero">
         <div className="hero-left">
           <p className="hero-eyebrow">Global payroll infrastructure</p>
           <h1 className="hero-title">Pay anyone,<br />anywhere,<br />on time.</h1>
           <p className="hero-sub">
-            PayStream lets finance teams run global payroll over Stellar — batched stablecoin payouts
+            PayStream lets finance teams run global payroll over Stellar, with batched stablecoin payouts
             that settle in 47 local currencies, with one approval click.
           </p>
           <div className="hero-actions">
@@ -92,7 +92,7 @@ export default function App() {
       <section className="capabilities">
         <div className="cap-header">
           <h2 className="cap-title">Built for the whole payroll stack</h2>
-          <p className="cap-sub">Not just a payment button — a complete payroll primitive for distributed teams.</p>
+          <p className="cap-sub">Not just a payment button. A complete payroll primitive for distributed teams.</p>
         </div>
         <div className="cap-grid">
           {CAPABILITIES.map((c) => (
