@@ -28,21 +28,57 @@ PayStream is built for finance and people-ops teams running distributed workforc
 
 If you currently pay your team via 14 different vendor invoices on the 1st of every month, PayStream collapses that into one funding transaction and one approval click.
 
+## Repository Structure
+
+```
+paystream/
+├── cmd/
+│   ├── paystream-api/      # Go API server (entry point: main.go)
+│   └── paystream-worker/   # Background jobs: signing, Horizon polling, webhook delivery
+├── internal/
+│   ├── payout/             # Core payout logic, batch chunking, Stellar tx construction
+│   ├── recipient/          # Recipient CRUD, payout method management
+│   ├── schedule/           # CRON-based recurring schedule engine
+│   ├── webhook/            # Event emission, HMAC signing, delivery with retries
+│   ├── anchor/             # SEP-31 corridor adapters (one file per anchor)
+│   └── compliance/         # Audit log emission, SOC 2 evidence hooks
+├── web/
+│   └── dashboard/          # React + TypeScript admin UI (Vite, App.tsx is the root)
+│       ├── src/
+│       │   ├── App.tsx     # Landing page and top-level routing
+│       │   └── App.css     # Global styles
+│       └── index.html
+├── sdks/
+│   ├── go/                 # Official Go client SDK
+│   ├── python/             # Official Python client SDK
+│   ├── node/               # Official Node.js client SDK
+│   └── ruby/               # Official Ruby client SDK
+├── deploy/
+│   ├── helm/               # Helm charts for Kubernetes deployments
+│   └── terraform/          # Terraform modules for cloud infrastructure
+├── examples/
+│   └── webhook_verification/ # HMAC verification samples (Go, Python, Node, Ruby)
+├── migrations/             # PostgreSQL migration files (sequential numbered)
+├── Makefile                # Developer commands (see below)
+└── README.md
+```
+
 ## Quickstart
 
 ### Prerequisites
 
 - Go 1.22+
+- Node.js 20+ and pnpm 9+
 - PostgreSQL 14+
-- A Stellar wallet funded with USDC (mainnet) or testnet USDC for development
-- Anchor credentials for at least one corridor
+- A Stellar testnet wallet funded with testnet USDC (get one at the Stellar Laboratory)
+- Anchor credentials for at least one corridor (optional for local dev; mock anchors are included)
 
 ### Run locally
 
 ```bash
-git clone https://github.com/breedar/paystream.git
+git clone https://github.com/Breedar/paystream.git
 cd paystream
-make bootstrap     # installs go deps, pnpm deps, runs migrations
+make bootstrap     # installs Go deps, pnpm deps, runs DB migrations
 make dev           # starts API on :8080, dashboard on :3000
 ```
 
@@ -58,113 +94,108 @@ curl -X POST http://localhost:8080/v1/payouts/batch \
     "asset": "USDC",
     "items": [
       {"recipient_id": "rec_abc", "amount": "1500.00"},
-      {"recipient_id": "rec_def", "amount": "2200.00"},
-      {"recipient_id": "rec_ghi", "amount": "950.00"}
+      {"recipient_id": "rec_def", "amount": "2200.00"}
     ]
   }'
 ```
 
 The response returns a `batch_id`. PayStream signs and submits the underlying Stellar transactions, monitors settlement on Horizon, and emits `payout.completed` webhooks as each recipient confirms receipt.
 
-## API reference
+## API Reference
 
-Full reference at `https://docs.paystream.dev`. Summary of the most-used endpoints below.
+The full reference is at `https://docs.paystream.dev`. The REST API covers four primary resources: **payouts** (single and batched), **recipients** (registration and payout method management), **schedules** (recurring runs), and **webhooks** (endpoint registration and 18 event types). All mutating endpoints accept an `Idempotency-Key` header; replays within 24 hours return the original response.
 
-### Payouts
+## Security and Compliance
 
-#### `POST /v1/payouts`
-Single-recipient payout. Returns immediately with status `pending`. Settlement webhook fires when Horizon confirms.
-
-#### `POST /v1/payouts/batch`
-Batched payout. Up to 1,000 items per request. PayStream chunks across Stellar transactions (max 100 ops each) and reports an aggregate `batch_id`.
-
-#### `GET /v1/payouts/{id}`
-Retrieve payout state, transaction hashes, and last-mile delivery confirmation.
-
-#### `POST /v1/payouts/{id}/cancel`
-Cancel a payout that has not yet been signed and submitted. After signing, payouts are irreversible.
-
-### Recipients
-
-#### `POST /v1/recipients`
-Register a recipient with their preferred payout method: Stellar wallet, bank account (SEP-31 local rail), or mobile money number.
-
-#### `GET /v1/recipients`
-List recipients with optional filters by country, payout method, or tag.
-
-#### `POST /v1/recipients/{id}/method`
-Update payout method without losing transaction history.
-
-### Schedules
-
-#### `POST /v1/schedules`
-Create a recurring schedule. Example: every Friday 9am UTC, run batch `payroll-weekly-contractors`.
-
-#### `POST /v1/schedules/{id}/pause`
-Pause a recurring schedule without deleting it.
-
-### Webhooks
-
-#### `POST /v1/webhook_endpoints`
-Register a webhook URL. Events are signed with HMAC-SHA256.
-
-#### Event types
-`payout.created`, `payout.signed`, `payout.submitted`, `payout.settled`, `payout.delivered`, `payout.failed`, `batch.created`, `batch.completed`, `batch.partial_failure`, `recipient.created`, `recipient.method_updated`, `schedule.triggered`, `schedule.paused`, `wallet.funded`, `wallet.low_balance`, `signer.added`, `signer.removed`, `audit.suspicious_activity`.
-
-## Security and compliance
-
-### Funding wallet architecture
+### Funding wallet
 
 PayStream never holds customer funds. The funding wallet is a Stellar account owned by the customer, configured with multi-sig:
 
-- Default signer set: 2-of-3 (CFO, CEO, PayStream service signer)
+- Default: 2-of-3 (CFO, CEO, PayStream service signer)
 - Configurable up to 20-of-20 for enterprise tier
 - The PayStream service signer can only co-sign; it cannot unilaterally move funds
-- Daily and per-transaction limits enforced at the protocol level via signer weights and pre-authorized transaction time-bounds
-
-### API authentication
-
-#### API keys
-Bearer tokens scoped per environment (test, live). Rotate via dashboard or `POST /v1/api_keys`. Old keys remain valid for 24 hours after rotation.
-
-#### Idempotency
-All mutating endpoints accept an `Idempotency-Key` header. Replays within 24 hours return the original response. Safe for retry loops.
-
-#### Webhook signing
-Every webhook is signed with HMAC-SHA256 using a per-endpoint secret. Sample verification code in Go, Python, Node, and Ruby lives in `examples/webhook_verification/`.
+- Daily and per-transaction limits enforced via signer weights and pre-authorized time-bounds
 
 ### Compliance posture
 
-#### SOC 2
-Type II audit underway with an AICPA-accredited firm. Evidence collection began January 2026. Report target: Q3 2026.
-
-#### Data residency
-Customer data (recipient PII, payout amounts, tax documents) is stored in the customer's chosen region: US, EU, or APAC. Stellar transaction data is on-chain and inherently global.
-
-#### Encryption
-TLS 1.3 in transit. AES-256 at rest. Recipient bank account numbers and tax IDs are envelope-encrypted with per-customer KMS keys.
-
-#### Audit logs
-Every state-changing action emits an audit event. Stream to Splunk, Datadog, S3, or any HTTPS endpoint via the audit forwarder.
+| Area | Status |
+|---|---|
+| SOC 2 Type II | Audit underway; target Q3 2026 |
+| Data residency | US, EU, or APAC (customer choice) |
+| Encryption | TLS 1.3 in transit; AES-256 at rest; per-customer KMS for PII |
+| Audit logs | Every state-changing action streamed to Splunk, Datadog, S3, or any HTTPS endpoint |
 
 ## Integrations
 
-### Accounting
-QuickBooks Online, Xero, NetSuite, Sage Intacct. Push payouts as bills with project and class tagging.
+**Accounting:** QuickBooks Online, Xero, NetSuite, Sage Intacct
 
-### HRIS
-Rippling, BambooHR, Gusto, Workday, HiBob. Sync employees and contractors as recipients; PayStream picks up payroll runs from the HRIS as scheduled batches.
+**HRIS:** Rippling, BambooHR, Gusto, Workday, HiBob
 
-### Identity
-Okta, Google Workspace, Azure AD via SAML 2.0. SCIM 2.0 for automatic user provisioning.
+**Identity:** Okta, Google Workspace, Azure AD (SAML 2.0 + SCIM 2.0)
 
-### Stellar anchors
-Cowrie, Vibrant, Pendo, ClickPesa, Saldo, MoneyGram Access. Each anchor is a corridor configuration; adding a new anchor is a Helm value plus a credential pair.
+**Stellar anchors:** Cowrie, Vibrant, Pendo, ClickPesa, Saldo, MoneyGram Access
 
-### Notifications
-Slack, Microsoft Teams, Discord, Email, PagerDuty for `wallet.low_balance` and `audit.suspicious_activity` events.
+**Notifications:** Slack, Teams, Discord, Email, PagerDuty
 
-## Recently shipped
+## Stellar Primitives Used
+
+- Multi-operation transactions (up to 100 ops/tx) for batched payouts
+- Multi-sig accounts with weighted signers for the funding wallet
+- Horizon `/transactions` and `/payments` ingestion for settlement confirmation
+- `MEMO_HASH` memos carrying payout reference IDs that link back to batch records
+- SEP-31 cross-border anchor flow for local-currency delivery
+- SEP-10 authentication for the dashboard and API key issuance
+
+## Contributing
+
+External PRs are welcome for SDK improvements, anchor configurations, webhook examples, and bug fixes. For larger features, open a GitHub Discussion first to align on approach before writing code.
+
+### Development commands
+
+```bash
+make bootstrap      # install deps and run DB migrations
+make dev            # start API (:8080) and dashboard (:3000) with hot reload
+make test           # run the full test suite (Go + TypeScript)
+make test-api       # Go tests only
+make test-dashboard # TypeScript/Vitest tests only
+make lint           # golangci-lint (Go) + eslint + prettier (TypeScript)
+make build          # production build of API binary and dashboard bundle
+```
+
+### Branch naming
+
+| Type | Pattern | Example |
+|---|---|---|
+| Feature | `feat/<short-description>` | `feat/mexico-corridor` |
+| Bug fix | `fix/<short-description>` | `fix/webhook-retry-backoff` |
+| Docs | `docs/<short-description>` | `docs/sep31-anchor-guide` |
+| Chore | `chore/<short-description>` | `chore/update-golangci` |
+
+### Commit messages
+
+Follow Conventional Commits:
+
+```
+feat(anchor): add ClickPesa corridor for Tanzania and Uganda
+fix(webhook): cap retry backoff at 1 hour to prevent stale deliveries
+docs(sdk/node): add idempotency key example to batch payout snippet
+```
+
+### PR checklist
+
+- `make test` passes locally
+- `make lint` passes with no new warnings
+- New behaviour is covered by at least one test
+- PR description links the relevant issue (`closes #N`)
+- Migrations are numbered sequentially and reversible where possible
+
+### Code conventions
+
+**Go:** Follow standard Go idioms. Exported types and functions must have doc comments. Keep packages focused; prefer multiple small files over one large one.
+
+**TypeScript:** Strict mode is on. Prefer named exports. Component files are PascalCase; utility files are camelCase.
+
+## Recently Shipped
 
 - **2026-04**: SCIM 2.0 provisioning for Okta and Azure AD
 - **2026-04**: Audit forwarder support for S3 and HTTPS sinks
@@ -173,34 +204,12 @@ Slack, Microsoft Teams, Discord, Email, PagerDuty for `wallet.low_balance` and `
 - **2026-02**: Idempotency keys on all mutating endpoints
 - **2026-01**: EURC support alongside USDC
 
-## In flight
+## In Flight
 
 - Native ACH return handling for US recipients
-- Mexico corridor via a new sending-anchor partnership
+- Mexico corridor via new anchor partnership
 - Kotlin and Swift SDKs for mobile employer apps
 - SOC 2 Type II evidence completion
-
-## Stellar primitives used
-
-- Multi-operation transactions (up to 100 ops/tx) for batched payouts
-- Multi-sig accounts with weighted signers for the funding wallet
-- Horizon `/transactions` and `/payments` ingestion for settlement confirmation
-- Memos (`MEMO_HASH`) carrying payout reference IDs that link back to PayStream batch records
-- SEP-31 cross-border anchor flow for local-currency delivery
-- SEP-10 authentication for the dashboard and API key issuance
-- Trustlines managed automatically per asset on the funding wallet
-
-## Contributing
-
-Internal contributions follow the standard fork → branch → PR flow. External PRs are welcome for SDK improvements, anchor configurations, and webhook examples. Run `make test` before pushing; `make lint` runs `golangci-lint` and `eslint` across the monorepo.
-
-The codebase is split:
-
-- `cmd/paystream-api` — Go API server
-- `cmd/paystream-worker` — background jobs (signing, Horizon polling, webhook delivery)
-- `web/dashboard` — React and TypeScript admin UI
-- `sdks/{go,python,node,ruby}` — official client SDKs
-- `deploy/` — Helm charts and Terraform modules
 
 ## License
 
