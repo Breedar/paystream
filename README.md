@@ -175,22 +175,3 @@ docs(sdk/node): add idempotency key example to batch payout snippet
 
 **TypeScript:** Strict mode is on. Prefer named exports. Component files are PascalCase; utility files are camelCase.
 
-## Recently Shipped
-
-- **2026-04**: SCIM 2.0 provisioning for Okta and Azure AD
-- **2026-04**: Audit forwarder support for S3 and HTTPS sinks
-- **2026-03**: Mobile-money last-mile in Tanzania and Uganda via ClickPesa
-- **2026-03**: Tax form generation beta (1099, W-2, W-8BEN)
-- **2026-02**: Idempotency keys on all mutating endpoints
-- **2026-01**: EURC support alongside USDC
-
-## In Flight
-
-- Native ACH return handling for US recipients
-- Mexico corridor via new anchor partnership
-- Kotlin and Swift SDKs for mobile employer apps
-- SOC 2 Type II evidence completion
-
-## License
-
-PayStream is released under the Business Source License 1.1. The license converts to Apache 2.0 four years after each release. Production use up to $1M ARR is free; above that, contact licensing@paystream.dev.
