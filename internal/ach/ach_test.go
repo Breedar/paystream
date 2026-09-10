@@ -33,7 +33,7 @@ func TestCreate_succeedsWithValidInput(t *testing.T) {
 
 func TestCreate_rejectsInvalidRoutingNumber(t *testing.T) {
 	s := NewService()
-	_, err := s.Create("ach_1", "rec_1", "000000000", "123456789", TransactionTypeCredit, 500)
+	_, err := s.Create("ach_1", "rec_1", "123456789", "123456789", TransactionTypeCredit, 500)
 	if !errors.Is(err, ErrInvalidRoutingNumber) {
 		t.Fatalf("expected ErrInvalidRoutingNumber, got %v", err)
 	}
